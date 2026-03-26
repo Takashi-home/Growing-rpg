@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>∞ CHRONICLE — 進化するRPG</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Cinzel:wght@400;700&family=Share+Tech+Mono&display=swap');
+
+:root {
+–bg: #0a0a0f;
+–surface: #12121a;
+–card: #1a1a26;
+–border: #2a2a40;
+–accent: #c8a96e;
+–accent2: #7b9cff;
+–accent3: #ff7b9c;
+–text: #e8e4d9;
+–muted: #6a6880;
+–hp: #4ecf6e;
+–mp: #4eabcf;
+–xp: #c8a96e;
+}
+
+- { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘Noto Serif JP’, serif;
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image:
+radial-gradient(1px 1px at 20% 30%, rgba(200,169,110,0.3) 0%, transparent 100%),
+radial-gradient(1px 1px at 80% 10%, rgba(123,156,255,0.3) 0%, transparent 100%),
+radial-gradient(1px 1px at 50% 80%, rgba(255,123,156,0.2) 0%, transparent 100%),
+radial-gradient(1px 1px at 10% 60%, rgba(200,169,110,0.2) 0%, transparent 100%),
+radial-gradient(1px 1px at 90% 50%, rgba(123,156,255,0.2) 0%, transparent 100%);
+background-size: 300px 300px, 400px 400px, 200px 200px, 350px 350px, 250px 250px;
+pointer-events: none;
+z-index: 0;
+animation: starFloat 60s linear infinite;
+}
+@keyframes starFloat {
+from { background-position: 0 0,0 0,0 0,0 0,0 0; }
+to   { background-position: -300px -300px,-400px -400px,-200px -200px,-350px -350px,-250px -250px; }
+}
+
+/* ===== API KEY SCREEN ===== */
+#apiScreen {
+position: fixed; inset: 0; z-index: 100;
+display: flex; align-items: center; justify-content: center;
+background: rgba(10,10,15,0.97);
+backdrop-filter: blur(8px);
+}
+#apiScreen.hidden { display: none; }
+
+.api-box {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 16px;
+padding: 40px 36px;
+max-width: 440px;
+width: 90%;
+position: relative;
+z-index: 1;
+box-shadow: 0 0 60px rgba(200,169,110,0.08);
+}
+.api-box::before {
+content: ‘’;
+position: absolute;
+top: 0; left: 0; right: 0;
+height: 2px;
+border-radius: 16px 16px 0 0;
+background: linear-gradient(90deg, transparent, var(–accent), transparent);
+}
+.api-logo {
+text-align: center;
+margin-bottom: 28px;
+}
+.api-logo h1 {
+font-family: ‘Cinzel’, serif;
+font-size: 2rem;
+color: var(–accent);
+letter-spacing: 0.3em;
+text-shadow: 0 0 30px rgba(200,169,110,0.4);
+}
+.api-logo p {
+font-size: 0.7rem;
+color: var(–muted);
+letter-spacing: 0.2em;
+margin-top: 6px;
+}
+.api-label {
+font-family: ‘Share Tech Mono’, monospace;
+font-size: 0.7rem;
+color: var(–accent);
+letter-spacing: 0.15em;
+text-transform: uppercase;
+margin-bottom: 8px;
+display: block;
+}
+.api-input-wrap {
+position: relative;
+margin-bottom: 10px;
+}
+.api-input {
+width: 100%;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 12px 44px 12px 14px;
+color: var(–text);
+font-family: ‘Share Tech Mono’, monospace;
+font-size: 0.8rem;
+outline: none;
+transition: border-color 0.2s;
+letter-spacing: 0.05em;
+}
+.api-input:focus { border-color: var(–accent); }
+.api-input::placeholder { color: var(–muted); letter-spacing: 0.05em; }
+.toggle-vis {
+position: absolute;
+right: 12px; top: 50%;
+transform: translateY(-50%);
+background: none; border: none;
+color: var(–muted); cursor: pointer;
+font-size: 1rem;
+transition: color 0.2s;
+}
+.toggle-vis:hover { color: var(–accent); }
+.api-hint {
+font-size: 0.65rem;
+color: var(–muted);
+margin-bottom: 24px;
+line-height: 1.6;
+}
+.api-hint a {
+color: var(–accent2);
+text-decoration: none;
+}
+.api-start-btn {
+width: 100%;
+background: linear-gradient(135deg, rgba(200,169,110,0.15), rgba(200,169,110,0.08));
+border: 1px solid var(–accent);
+border-radius: 8px;
+padding: 14px;
+color: var(–accent);
+font-family: ‘Cinzel’, serif;
+font-size: 0.9rem;
+letter-spacing: 0.2em;
+cursor: pointer;
+transition: all 0.2s;
+}
+.api-start-btn:hover {
+background: linear-gradient(135deg, rgba(200,169,110,0.25), rgba(200,169,110,0.12));
+box-shadow: 0 0 20px rgba(200,169,110,0.2);
+transform: translateY(-1px);
+}
+.api-start-btn:disabled {
+opacity: 0.4; cursor: not-allowed; transform: none;
+}
+.api-error {
+font-family: ‘Share Tech Mono’, monospace;
+font-size: 0.7rem;
+color: var(–accent3);
+margin-top: 10px;
+min-height: 18px;
+text-align: center;
+}
+.api-key-badge {
+display: none;
+align-items: center;
+gap: 6px;
+font-family: ‘Share Tech Mono’, monospace;
+font-size: 0.65rem;
+color: var(–hp);
+padding: 4px 10px;
+background: rgba(78,207,110,0.1);
+border: 1px solid rgba(78,207,110,0.3);
+border-radius: 20px;
+cursor: pointer;
+}
+.api-key-badge.show { display: flex; }
+
+/* ===== GAME WRAPPER ===== */
+.game-wrapper {
+position: relative;
+z-index: 1;
+max-width: 860px;
+margin: 0 auto;
+padding: 20px;
+}
+
+.game-title {
+text-align: center;
+padding: 24px 0 16px;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 16px;
+flex-wrap: wrap;
+}
+.game-title-text h1 {
+font-family: ‘Cinzel’, serif;
+font-size: 2.2rem;
+letter-spacing: 0.3em;
+color: var(–accent);
+text-shadow: 0 0 40px rgba(200,169,110,0.4);
+}
+.game-title-text p {
+font-size: 0.75rem;
+color: var(–muted);
+letter-spacing: 0.2em;
+margin-top: 4px;
+}
+
+/* Status Panel */
+.status-panel {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 12px;
+padding: 16px 20px;
+margin-bottom: 16px;
+display: grid;
+grid-template-columns: auto 1fr auto;
+gap: 16px;
+align-items: center;
+position: relative;
+overflow: hidden;
+}
+.status-panel::before {
+content: ‘’;
+position: absolute;
+top: 0; left: 0; right: 0;
+height: 2px;
+background: linear-gradient(90deg, transparent, var(–accent), transparent);
+opacity: 0.6;
+}
+.char-avatar {
+width: 64px; height: 64px;
+border-radius: 50%;
+border: 2px solid var(–accent);
+display: flex; align-items: center; justify-content: center;
+font-size: 2rem;
+background: var(–surface);
+box-shadow: 0 0 20px rgba(200,169,110,0.2);
+transition: all 0.5s ease;
+flex-shrink: 0;
+}
+.char-info { flex: 1; }
+.char-name { font-family: ‘Cinzel’, serif; font-size: 1.1rem; color: var(–accent); margin-bottom: 2px; }
+.char-class { font-size: 0.72rem; color: var(–accent2); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 10px; }
+.bars { display: flex; flex-direction: column; gap: 6px; }
+.bar-row { display: flex; align-items: center; gap: 8px; }
+.bar-label { font-family: ‘Share Tech Mono’, monospace; font-size: 0.65rem; color: var(–muted); width: 24px; text-transform: uppercase; }
+.bar-track { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.bar-fill.hp { background: linear-gradient(90deg, #2ea050, var(–hp)); }
+.bar-fill.mp { background: linear-gradient(90deg, #2e7a9a, var(–mp)); }
+.bar-fill.xp { background: linear-gradient(90deg, #9a7e2e, var(–xp)); }
+.bar-val { font-family: ‘Share Tech Mono’, monospace; font-size: 0.65rem; color: var(–muted); width: 52px; text-align: right; }
+.char-stats-right { text-align: right; flex-shrink: 0; }
+.level-badge { font-family: ‘Cinzel’, serif; font-size: 0.7rem; color: var(–accent); letter-spacing: 0.1em; margin-bottom: 4px; }
+.level-num { font-family: ‘Cinzel’, serif; font-size: 2rem; color: var(–accent); line-height: 1; text-shadow: 0 0 20px rgba(200,169,110,0.5); }
+.stats-mini { margin-top: 6px; font-family: ‘Share Tech Mono’, monospace; font-size: 0.6rem; color: var(–muted); line-height: 1.6; }
+
+/* World Strip */
+.world-strip {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 10px 14px;
+margin-bottom: 12px;
+display: flex;
+gap: 20px;
+font-family: ‘Share Tech Mono’, monospace;
+font-size: 0.7rem;
+color: var(–muted);
+flex-wrap: wrap;
+}
+.world-item { display: flex; gap: 6px; align-items: center; }
+.world-item span:first-child { color: var(–accent); }
+
+/* Story Area */
+.story-area {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: 12px;
+padding: 20px;
+margin-bottom: 14px;
+min-height: 200px;
+position: relative;
+}
+.story-text {
+font-size: 0.92rem;
+line-height: 1.9;
+color: var(–text);
+white-space: pre-wrap;
+min-height: 120px;
+}
+.story-text.loading {
+display: flex; align-items: center; gap: 10px;
+color: var(–muted); font-style: italic; font-size: 0.85rem;
+}
+.cursor-blink {
+display: inline-block; width: 2px; height: 1em;
+background: var(–accent); animation: blink 0.8s step-end infinite; vertical-align: middle;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* Choices */
+.choices-area { display: grid; gap: 8px; margin-bottom: 14px; }
+.choice-btn {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 12px 16px;
+color: var(–text);
+font-family: ‘Noto Serif JP’, serif;
+font-size: 0.85rem;
+cursor: pointer;
+text-align: left;
+transition: all 0.2s ease;
+position: relative; overflow: hidden;
+}
+.choice-btn::before {
+content: ‘’; position: absolute; inset: 0;
+background: linear-gradient(135deg, rgba(200,169,110,0.05), transparent);
+opacity: 0; transition: opacity 0.2s;
+}
+.choice-btn:hover:not(:disabled) {
+border-color: var(–accent); color: var(–accent);
+transform: translateX(4px); box-shadow: -4px 0 0 var(–accent);
+}
+.choice-btn:hover::before { opacity: 1; }
+.choice-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.choice-num { font-family: ‘Share Tech Mono’, monospace; font-size: 0.7rem; color: var(–accent); margin-right: 8px; }
+
+/* Battle */
+.battle-area {
+background: var(–card);
+border: 1px solid var(–accent3);
+border-radius: 12px;
+padding: 16px 20px;
+margin-bottom: 14px;
+display: none;
+}
+.battle-area.active { display: block; }
+.battle-title { font-family: ‘Cinzel’, serif; font-size: 0.8rem; color: var(–accent3); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; text-align: center; }
+.enemy-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.enemy-name { font-family: ‘Cinzel’, serif; font-size: 1rem; color: var(–accent3); }
+.enemy-hp-track { width: 140px; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+.enemy-hp-fill { height: 100%; background: linear-gradient(90deg, #9a2e2e, var(–accent3)); border-radius: 3px; transition: width 0.4s ease; }
+.battle-log { font-family: ‘Share Tech Mono’, monospace; font-size: 0.72rem; color: var(–muted); margin: 10px 0; min-height: 40px; line-height: 1.6; }
+.battle-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.battle-btn {
+background: rgba(255,123,156,0.1); border: 1px solid rgba(255,123,156,0.3);
+border-radius: 6px; padding: 8px 14px;
+color: var(–accent3); font-family: ‘Share Tech Mono’, monospace;
+font-size: 0.72rem; cursor: pointer; transition: all 0.2s;
+text-transform: uppercase; letter-spacing: 0.1em;
+}
+.battle-btn:hover:not(:disabled) { background: rgba(255,123,156,0.2); border-color: var(–accent3); transform: translateY(-1px); }
+.battle-btn.magic { background: rgba(123,156,255,0.1); border-color: rgba(123,156,255,0.3); color: var(–accent2); }
+.battle-btn.magic:hover:not(:disabled) { background: rgba(123,156,255,0.2); border-color: var(–accent2); }
+.battle-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* History */
+.history-area {
+background: var(–surface); border: 1px solid var(–border);
+border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;
+max-height: 120px; overflow-y: auto;
+scrollbar-width: thin; scrollbar-color: var(–border) transparent;
+}
+.history-item { font-family: ‘Share Tech Mono’, monospace; font-size: 0.65rem; color: var(–muted); line-height: 1.7; border-bottom: 1px solid rgba(255,255,255,0.03); padding: 2px 0; }
+.history-item.event { color: var(–accent); }
+.history-item.battle { color: var(–accent3); }
+.history-item.levelup { color: var(–hp); font-weight: bold; }
+
+/* Items */
+.items-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.item-chip {
+background: var(–surface); border: 1px solid var(–border);
+border-radius: 20px; padding: 4px 10px;
+font-size: 0.65rem; font-family: ‘Share Tech Mono’, monospace;
+color: var(–muted); display: flex; align-items: center; gap: 4px;
+}
+
+/* Animations */
+@keyframes levelFlash {
+0%   { box-shadow: 0 0 0 rgba(200,169,110,0); }
+50%  { box-shadow: 0 0 40px rgba(200,169,110,0.6); }
+100% { box-shadow: 0 0 0 rgba(200,169,110,0); }
+}
+.level-up-flash { animation: levelFlash 1.5s ease-in-out; }
+@keyframes shake {
+0%,100% { transform: translateX(0); }
+25%     { transform: translateX(-4px); }
+75%     { transform: translateX(4px); }
+}
+.shake { animation: shake 0.3s ease-in-out; }
+
+@media (max-width: 600px) {
+.status-panel { grid-template-columns: auto 1fr; }
+.char-stats-right { display: none; }
+.game-title-text h1 { font-size: 1.6rem; }
+}
+</style>
+
+</head>
+<body>
+
+<!-- ===== API KEY SCREEN ===== -->
+
+<div id="apiScreen">
+  <div class="api-box">
+    <div class="api-logo">
+      <h1>∞ CHRONICLE</h1>
+      <p>AI-POWERED EVOLVING RPG</p>
+    </div>
+    <label class="api-label">Anthropic API Key</label>
+    <div class="api-input-wrap">
+      <input class="api-input" id="apiKeyInput" type="password" placeholder="sk-ant-api03-..." autocomplete="off" />
+      <button class="toggle-vis" id="toggleVis" onclick="toggleKeyVisibility()" title="表示/非表示">👁</button>
+    </div>
+    <div class="api-hint">
+      APIキーは <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> で取得できます。<br>
+      キーはこのページ内のみで使用され、外部に送信されません（Anthropic APIへのリクエストを除く）。
+    </div>
+    <button class="api-start-btn" id="startBtn" onclick="startGame()" disabled>冒険を始める ▶</button>
+    <div class="api-error" id="apiError"></div>
+  </div>
+</div>
+
+<!-- ===== GAME ===== -->
+
+<div class="game-wrapper">
+  <div class="game-title">
+    <div class="game-title-text">
+      <h1>∞ CHRONICLE</h1>
+      <p>AI-POWERED EVOLVING RPG — すべては貴方の選択で変わる</p>
+    </div>
+    <div class="api-key-badge" id="apiKeyBadge" onclick="resetApiKey()" title="APIキーを変更">🔑 API接続済 ✕</div>
+  </div>
+
+  <div class="status-panel" id="statusPanel">
+    <div class="char-avatar" id="charAvatar">🧙</div>
+    <div class="char-info">
+      <div class="char-name" id="charName">名もなき旅人</div>
+      <div class="char-class" id="charClass">WANDERER · Lv.1</div>
+      <div class="bars">
+        <div class="bar-row">
+          <span class="bar-label">HP</span>
+          <div class="bar-track"><div class="bar-fill hp" id="hpBar" style="width:100%"></div></div>
+          <span class="bar-val" id="hpVal">50 / 50</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">MP</span>
+          <div class="bar-track"><div class="bar-fill mp" id="mpBar" style="width:100%"></div></div>
+          <span class="bar-val" id="mpVal">30 / 30</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">XP</span>
+          <div class="bar-track"><div class="bar-fill xp" id="xpBar" style="width:0%"></div></div>
+          <span class="bar-val" id="xpVal">0 / 100</span>
+        </div>
+      </div>
+    </div>
+    <div class="char-stats-right">
+      <div class="level-badge">LEVEL</div>
+      <div class="level-num" id="levelNum">1</div>
+      <div class="stats-mini" id="statsMini">ATK: 10<br>DEF: 8<br>MGC: 12</div>
+    </div>
+  </div>
+
+  <div class="world-strip">
+    <div class="world-item"><span>📍</span><span id="locationName">古の森の入り口</span></div>
+    <div class="world-item"><span>🌤</span><span id="weatherName">晴れ</span></div>
+    <div class="world-item"><span>📅</span><span id="dayName">旅1日目</span></div>
+    <div class="world-item"><span>💰</span><span id="goldVal">10 G</span></div>
+  </div>
+
+  <div class="battle-area" id="battleArea">
+    <div class="battle-title">⚔ BATTLE ⚔</div>
+    <div class="enemy-row">
+      <div>
+        <div class="enemy-name" id="enemyName">---</div>
+        <div style="font-size:0.65rem;color:var(--muted);margin-top:2px" id="enemyDesc">---</div>
+      </div>
+      <div>
+        <div style="font-family:'Share Tech Mono';font-size:0.65rem;color:var(--muted);text-align:right;margin-bottom:4px" id="enemyHpLabel">HP: 30/30</div>
+        <div class="enemy-hp-track"><div class="enemy-hp-fill" id="enemyHpBar" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div class="battle-log" id="battleLog">戦闘開始...</div>
+    <div class="battle-actions">
+      <button class="battle-btn" onclick="doBattleAction('attack')">⚔ 攻撃</button>
+      <button class="battle-btn magic" onclick="doBattleAction('magic')" id="magicBtn">✨ 魔法</button>
+      <button class="battle-btn" onclick="doBattleAction('item')" id="itemBtn">🧪 ポーション</button>
+      <button class="battle-btn" onclick="doBattleAction('flee')" style="color:var(--muted)">💨 逃げる</button>
+    </div>
+  </div>
+
+  <div class="story-area">
+    <div class="story-text" id="storyText">
+      <span class="loading">冒険の準備をしています... <span class="cursor-blink"></span></span>
+    </div>
+  </div>
+
+  <div class="choices-area" id="choicesArea"></div>
+  <div class="items-row" id="itemsRow"></div>
+  <div class="history-area" id="historyArea"></div>
+</div>
+
+<script>
+// ===== API KEY MANAGEMENT =====
+let apiKey = '';
+
+document.getElementById('apiKeyInput').addEventListener('input', function() {
+  const val = this.value.trim();
+  document.getElementById('startBtn').disabled = val.length < 20;
+  document.getElementById('apiError').textContent = '';
+});
+
+document.getElementById('apiKeyInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') startGame();
+});
+
+function toggleKeyVisibility() {
+  const inp = document.getElementById('apiKeyInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function startGame() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key || key.length < 20) return;
+  apiKey = key;
+  document.getElementById('apiScreen').classList.add('hidden');
+  document.getElementById('apiKeyBadge').classList.add('show');
+  document.getElementById('apiKeyInput').value = '';
+  document.getElementById('apiError').textContent = '';
+  init();
+}
+
+function resetApiKey() {
+  if (!confirm('APIキーをリセットしてゲームを終了しますか？')) return;
+  apiKey = '';
+  document.getElementById('apiKeyBadge').classList.remove('show');
+  document.getElementById('apiScreen').classList.remove('hidden');
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('startBtn').textContent = '冒険を始める ▶';
+  // Reset game state
+  Object.assign(state.char, {
+    name:'名もなき旅人', class:'Wanderer', avatar:'🧙', level:1,
+    hp:50,maxHp:50, mp:30,maxMp:30, xp:0,xpNext:100,
+    atk:10,def:8,mgc:12, gold:10,
+    skills:['通常攻撃'], items:['ポーション×2'], potions:2
+  });
+  Object.assign(state.world, {
+    location:'古の森の入り口', weather:'晴れ', day:1,
+    visitedPlaces:['古の森の入り口'], worldEvents:[]
+  });
+  state.battle = null;
+  state.history = [];
+  state.turnCount = 0;
+  state.storyContext = [];
+  state.isLoading = false;
+  document.getElementById('battleArea').classList.remove('active');
+  document.getElementById('historyArea').innerHTML = '';
+  document.getElementById('choicesArea').innerHTML = '';
+  document.getElementById('itemsRow').innerHTML = '';
+  document.getElementById('storyText').innerHTML = '<span class="loading">冒険の準備をしています... <span class="cursor-blink"></span></span>';
+  updateUI();
+}
+
+// ===== GAME STATE =====
+const state = {
+  char: {
+    name:'名もなき旅人', class:'Wanderer', avatar:'🧙', level:1,
+    hp:50,maxHp:50, mp:30,maxMp:30, xp:0,xpNext:100,
+    atk:10,def:8,mgc:12, gold:10,
+    skills:['通常攻撃'], items:['ポーション×2'], potions:2
+  },
+  world: {
+    location:'古の森の入り口', weather:'晴れ', day:1,
+    visitedPlaces:['古の森の入り口'], worldEvents:[]
+  },
+  battle: null,
+  history: [],
+  turnCount: 0,
+  storyContext: [],
+  isLoading: false
+};
+
+// ===== UI =====
+function updateUI() {
+  const c = state.char;
+  document.getElementById('charName').textContent = c.name;
+  document.getElementById('charClass').textContent = `${c.class.toUpperCase()} · Lv.${c.level}`;
+  document.getElementById('charAvatar').textContent = c.avatar;
+  document.getElementById('hpBar').style.width = `${(c.hp/c.maxHp)*100}%`;
+  document.getElementById('hpVal').textContent = `${c.hp} / ${c.maxHp}`;
+  document.getElementById('mpBar').style.width = `${(c.mp/c.maxMp)*100}%`;
+  document.getElementById('mpVal').textContent = `${c.mp} / ${c.maxMp}`;
+  document.getElementById('xpBar').style.width = `${(c.xp/c.xpNext)*100}%`;
+  document.getElementById('xpVal').textContent = `${c.xp} / ${c.xpNext}`;
+  document.getElementById('levelNum').textContent = c.level;
+  document.getElementById('statsMini').innerHTML = `ATK: ${c.atk}<br>DEF: ${c.def}<br>MGC: ${c.mgc}`;
+  document.getElementById('locationName').textContent = state.world.location;
+  document.getElementById('weatherName').textContent = state.world.weather;
+  document.getElementById('dayName').textContent = `旅${state.world.day}日目`;
+  document.getElementById('goldVal').textContent = `${c.gold} G`;
+  const row = document.getElementById('itemsRow');
+  row.innerHTML = c.items.map(i=>`<div class="item-chip">🎒 ${i}</div>`).join('');
+  c.skills.slice(1).forEach(s => {
+    row.innerHTML += `<div class="item-chip" style="border-color:rgba(123,156,255,0.3);color:var(--accent2)">✨ ${s}</div>`;
+  });
+}
+
+function addHistory(text, type='') {
+  state.history.unshift({ text, type });
+  if (state.history.length > 30) state.history.pop();
+  document.getElementById('historyArea').innerHTML =
+    state.history.map(h=>`<div class="history-item ${h.type}">▸ ${h.text}</div>`).join('');
+}
+
+function setStory(text) { document.getElementById('storyText').textContent = text; }
+function setLoading() {
+  document.getElementById('storyText').innerHTML = '<span class="loading">AIが世界を紡いでいます... <span class="cursor-blink"></span></span>';
+  document.getElementById('choicesArea').innerHTML = '';
+}
+
+// ===== LEVEL UP =====
+function checkLevelUp() {
+  const c = state.char;
+  if (c.xp < c.xpNext) return false;
+  c.xp -= c.xpNext;
+  c.level++;
+  c.xpNext = Math.floor(c.xpNext * 1.4);
+  c.maxHp += 10; c.hp = c.maxHp;
+  c.maxMp += 5;  c.mp = c.maxMp;
+  c.atk += 3; c.def += 2; c.mgc += 4;
+  const evolutions = [
+    {level:3,  class:'Adventurer', avatar:'⚔️'},
+    {level:5,  class:'Knight',     avatar:'🛡️'},
+    {level:8,  class:'Champion',   avatar:'🏆'},
+    {level:12, class:'Hero',       avatar:'⭐'},
+    {level:18, class:'Legend',     avatar:'🌟'}
+  ];
+  const evo = evolutions.find(e => e.level === c.level);
+  if (evo) { c.class = evo.class; c.avatar = evo.avatar; addHistory(`クラスが ${evo.class} に進化！`, 'levelup'); }
+  document.getElementById('statusPanel').classList.add('level-up-flash');
+  setTimeout(() => document.getElementById('statusPanel').classList.remove('level-up-flash'), 1500);
+  addHistory(`レベルアップ！ Lv.${c.level} に！ HP・MP全回復！`, 'levelup');
+  updateUI();
+  return true;
+}
+
+// ===== BATTLE =====
+function startBattle(enemy) {
+  state.battle = { ...enemy, currentHp: enemy.hp };
+  document.getElementById('battleArea').classList.add('active');
+  document.getElementById('enemyName').textContent = enemy.name;
+  document.getElementById('enemyDesc').textContent = enemy.desc || '';
+  updateBattleUI();
+  addHistory(`${enemy.name} との戦闘開始！`, 'battle');
+}
+
+function updateBattleUI() {
+  const b = state.battle; if (!b) return;
+  const pct = Math.max(0, (b.currentHp / b.hp) * 100);
+  document.getElementById('enemyHpBar').style.width = `${pct}%`;
+  document.getElementById('enemyHpLabel').textContent = `HP: ${b.currentHp}/${b.hp}`;
+  document.getElementById('magicBtn').disabled = state.char.mp < 10;
+  document.getElementById('itemBtn').disabled = state.char.potions <= 0;
+  document.getElementById('itemBtn').textContent = `🧪 ポーション(${state.char.potions})`;
+}
+
+function doBattleAction(action) {
+  if (!state.battle || state.isLoading) return;
+  const c = state.char, b = state.battle;
+  let log = '';
+  if (action === 'attack') {
+    const dmg = Math.max(1, c.atk - Math.floor(b.def*0.5) + Math.floor(Math.random()*5));
+    b.currentHp -= dmg;
+    log = `${c.name} の攻撃！ ${b.name} に ${dmg} ダメージ！`;
+  } else if (action === 'magic') {
+    if (c.mp < 10) return;
+    const dmg = Math.max(1, c.mgc*2 - Math.floor(b.def*0.3) + Math.floor(Math.random()*8));
+    c.mp -= 10; b.currentHp -= dmg;
+    log = `✨ 魔法攻撃！ ${b.name} に ${dmg} の魔法ダメージ！`;
+  } else if (action === 'item') {
+    if (c.potions <= 0) return;
+    const heal = 20 + Math.floor(Math.random()*10);
+    c.hp = Math.min(c.maxHp, c.hp + heal);
+    c.potions--;
+    c.items = c.items.filter(i => !i.includes('ポーション'));
+    if (c.potions > 0) c.items.push(`ポーション×${c.potions}`);
+    log = `💊 ポーション使用！ HP ${heal} 回復！`;
+    updateUI(); updateBattleUI();
+    document.getElementById('battleLog').textContent = log;
+    setTimeout(() => enemyAttack(), 500);
+    return;
+  } else if (action === 'flee') {
+    if (Math.random() < 0.5) {
+      document.getElementById('battleLog').textContent = '💨 逃げることに成功した！';
+      endBattle(false); return;
+    } else { log = '逃げようとしたが失敗した！'; }
+  }
+  document.getElementById('battleLog').textContent = log;
+  updateBattleUI(); updateUI();
+  if (b.currentHp <= 0) { setTimeout(() => endBattle(true), 800); return; }
+  setTimeout(() => enemyAttack(), 700);
+}
+
+function enemyAttack() {
+  const c = state.char, b = state.battle; if (!b) return;
+  const dmg = Math.max(1, b.atk - Math.floor(c.def*0.4) + Math.floor(Math.random()*4));
+  c.hp -= dmg;
+  document.getElementById('battleLog').textContent = `${b.name} の攻撃！ ${dmg} ダメージを受けた！`;
+  document.getElementById('statusPanel').classList.add('shake');
+  setTimeout(() => document.getElementById('statusPanel').classList.remove('shake'), 300);
+  updateUI(); updateBattleUI();
+  if (c.hp <= 0) {
+    c.hp = 0; updateUI();
+    setTimeout(() => {
+      c.hp = Math.floor(c.maxHp * 0.2);
+      c.xp = Math.max(0, c.xp - 10);
+      endBattle(false, true);
+    }, 800);
+  }
+}
+
+function endBattle(won, defeated = false) {
+  const b = state.battle;
+  document.getElementById('battleArea').classList.remove('active');
+  state.battle = null;
+  if (won) {
+    const xp = b.xpReward || 20, gold = b.goldReward || 5;
+    state.char.xp += xp; state.char.gold += gold;
+    addHistory(`${b.name} を倒した！ XP+${xp} G+${gold}`, 'battle');
+    checkLevelUp(); updateUI();
+    advanceStory(`戦闘に勝利した。${b.name}を倒してXP+${xp}、Gold+${gold}を得た。`);
+  } else if (defeated) {
+    addHistory(`${b.name} に敗北... 回復して続行`, 'battle');
+    updateUI();
+    advanceStory('戦闘に敗北した。ぼろぼろの状態で戦場を離れた。');
+  } else {
+    addHistory(`${b.name} から逃走した`, 'battle');
+    advanceStory('戦闘から逃げ出した。');
+  }
+}
+
+// ===== AI ENGINE =====
+async function callAI(prompt) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: `あなたはダークファンタジーRPGのゲームマスターAIです。
+プレイヤーの選択に応じて、リッチで没入感のある物語を紡ぎます。
+
+必ずJSONのみで返答してください（コードブロック不要）:
+{
+  "story": "物語テキスト（200字程度、改行\\n使用可）",
+  "choices": ["選択肢1", "選択肢2", "選択肢3"],
+  "event": { "type": "none|battle|item|location|weather|npc|skill", "data": {} },
+  "worldUpdate": { "location": "変更ある場合のみ", "weather": "変更ある場合のみ", "dayAdvance": false }
+}
+battleのdata: { "name": "敵名", "desc": "説明", "hp": 数値, "atk": 数値, "def": 数値, "xpReward": 数値, "goldReward": 数値 }
+itemのdata: { "item": "アイテム名", "effect": "hp|mp|gold|potion", "value": 数値 }
+skillのdata: { "skill": "新スキル名" }
+物語は短くテンポよく。選択肢は3つ。世界は常に変化し続ける。`,
+      messages: [...state.storyContext, { role: 'user', content: prompt }]
+    })
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    if (response.status === 401) {
+      apiKey = '';
+      document.getElementById('apiKeyBadge').classList.remove('show');
+      document.getElementById('apiScreen').classList.remove('hidden');
+      document.getElementById('apiError').textContent = '⚠ APIキーが無効です。再入力してください。';
+      throw new Error('APIキーが無効です。再入力してください。');
+    }
+    throw new Error(data?.error?.message || 'API Error ' + response.status);
+  }
+  const text = data.content?.find(b => b.type === 'text')?.text || '{}';
+  try { return JSON.parse(text.replace(/```json|```/g,'').trim()); }
+  catch(e) { return { story: text, choices: ['続ける','探索する','休む'], event:{type:'none'}, worldUpdate:{} }; }
+}
+
+async function advanceStory(context = '') {
+  if (state.isLoading) return;
+  state.isLoading = true;
+  setLoading();
+  state.turnCount++;
+  const c = state.char, w = state.world;
+  const prompt = `現在の状況:
+- キャラ: ${c.name}(${c.class} Lv.${c.level}) HP:${c.hp}/${c.maxHp} MP:${c.mp}/${c.maxMp} ATK:${c.atk} DEF:${c.def} MGC:${c.mgc}
+- 所持: ${c.items.join(', ')} / Gold:${c.gold} / スキル:${c.skills.join(', ')}
+- 場所: ${w.location} / 天気:${w.weather} / 旅${w.day}日目
+- 訪問済み: ${w.visitedPlaces.slice(-3).join('→')}
+- ターン数: ${state.turnCount}
+${context ? `- 直前の出来事: ${context}` : ''}
+次の場面を生成してください。Lv${c.level}に合った難易度で。`;
+
+  state.storyContext.push({ role:'user', content: prompt });
+  if (state.storyContext.length > 10) state.storyContext = state.storyContext.slice(-10);
+
+  try {
+    const result = await callAI(prompt);
+    state.storyContext.push({ role:'assistant', content: JSON.stringify(result) });
+
+    if (result.worldUpdate) {
+      if (result.worldUpdate.location) {
+        state.world.location = result.worldUpdate.location;
+        if (!state.world.visitedPlaces.includes(result.worldUpdate.location))
+          state.world.visitedPlaces.push(result.worldUpdate.location);
+        addHistory(`場所: ${result.worldUpdate.location}`, 'event');
+      }
+      if (result.worldUpdate.weather) state.world.weather = result.worldUpdate.weather;
+      if (result.worldUpdate.dayAdvance) {
+        state.world.day++;
+        state.char.hp = Math.min(state.char.maxHp, state.char.hp + 10);
+        state.char.mp = Math.min(state.char.maxMp, state.char.mp + 5);
+        addHistory(`${state.world.day}日目の朝。HP・MPが少し回復した。`, 'event');
+      }
+    }
+
+    if (result.event) {
+      const ev = result.event;
+      if (ev.type === 'battle' && ev.data) {
+        setStory(result.story);
+        renderChoices([]);
+        state.isLoading = false;
+        updateUI();
+        setTimeout(() => startBattle(ev.data), 600);
+        return;
+      } else if (ev.type === 'item' && ev.data) {
+        const d = ev.data;
+        if (d.effect === 'hp')     state.char.hp = Math.min(state.char.maxHp, state.char.hp + d.value);
+        else if (d.effect === 'mp')  state.char.mp = Math.min(state.char.maxMp, state.char.mp + d.value);
+        else if (d.effect === 'gold') state.char.gold += d.value;
+        else if (d.effect === 'potion') {
+          state.char.potions += d.value;
+          state.char.items.push(`ポーション×${state.char.potions}`);
+        }
+        if (d.item) state.char.items = [...new Set([...state.char.items, d.item])];
+        addHistory(`アイテム入手: ${d.item}`, 'event');
+      } else if (ev.type === 'skill' && ev.data?.skill) {
+        if (!state.char.skills.includes(ev.data.skill)) {
+          state.char.skills.push(ev.data.skill);
+          addHistory(`新スキル習得: ${ev.data.skill}`, 'levelup');
+        }
+      }
+    }
+
+    setStory(result.story || '物語が続く...');
+    renderChoices(result.choices || ['続ける','探索する','休む']);
+    updateUI();
+  } catch(e) {
+    setStory(`エラーが発生しました: ${e.message}\n\n再試行してください。`);
+    renderChoices(['もう一度試す']);
+  }
+  state.isLoading = false;
+}
+
+function renderChoices(choices) {
+  document.getElementById('choicesArea').innerHTML = choices.map((c,i) =>
+    `<button class="choice-btn" onclick="makeChoice(${i}, \`${c.replace(/`/g,"'")}\`)">
+      <span class="choice-num">[${i+1}]</span>${c}
+    </button>`
+  ).join('');
+}
+
+function makeChoice(idx, text) {
+  if (state.isLoading || state.battle) return;
+  addHistory(`選択: ${text}`, '');
+  advanceStory(`プレイヤーが選択: 「${text}」`);
+}
+
+// ===== INIT =====
+async function init() {
+  updateUI();
+  addHistory('冒険が始まった', 'event');
+  await advanceStory('ゲーム開始。プロローグとして世界観を紹介し、冒険の始まりを演出してください。');
+}
+</script>
+
+</body>
+</html>
